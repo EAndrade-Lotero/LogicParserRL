@@ -1,20 +1,42 @@
-from sentence_transformers import SentenceTransformer
+import torch
 
-encoder_model = SentenceTransformer('sentence-transformers/distiluse-base-multilingual-cased-v1')
-tokenizer = encoder_model.tokenizer
-SEP = tokenizer.sep_token
+from src.encoders.encoders import SentenceEncoder, DRSEncoder
+from src.config.config import PATHS
 
-def id_state(state):
+PATH_SENTENCE_ENCODER = PATHS["sentence_encoder"]
+PATH_DRS_ENCODER = PATHS["drs_encoder"]
+
+class ParserInterpreter:
     '''
-    Default interpreter: do nothing.
+    Parser interpreter interface.
     '''
-    return state
+    def __init__(self):
+        self.sentence_encoder = SentenceEncoder.load_from_file(PATH_SENTENCE_ENCODER)
+        self.drs_encoder = DRSEncoder.load_from_file(PATH_DRS_ENCODER)
 
-def parser_interpreter(state):
-    estado_actual, raiz = state['Estado'], state['Raiz'] 
-    state_str = estado_actual.obtener_cadena() + f"\n {raiz}"
-    embeddings = encoder_model.encode(
-        [estado_actual.frase, SEP + estado_actual.obtener_cadena() + SEP, str(raiz)],
-        convert_to_numpy=True
-    ).flatten()
-    return embeddings
+    def get_embedding(self, estado) -> torch.Tensor:
+        """
+        Obtiene el embedding de la DRS actual.
+        Returns:
+            np.ndarray: Embedding de la DRS actual.
+        """
+        # Inicializa el embedding con ceros
+        nodo_indice = self.estado.get_nodo_indice()
+        # Crea el embedding de los índices
+        embed_indices = torch.tensor(
+            [
+                estado.indice # indice de la palabra actual
+                nodo_indice # indice del nodo actual
+            ],
+            dtype=torch.float32
+        )
+        # Crea el embedding de la frase y el DRS
+        frase = estado.frases[nodo_indice]
+        embedding_sentence = self.sentence_encoder(frase)
+        embedding_drs = self.drs_encoder(estado.get_nodo().drs.simplify())
+        # Concatena los embeddings
+        embedding = torch.stack((embed_indices, embedding_sentence, embedding_drs))
+        return embedding
+
+
+
