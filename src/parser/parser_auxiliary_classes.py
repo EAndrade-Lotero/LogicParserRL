@@ -15,7 +15,6 @@ nlp = stanza.Pipeline(
     verbose=False
 )
 
-EMB_DIM = 1536
 
 class Nodo:
     """Representa el nodo de un arbol 3-aridad para la construcción de DRS.
@@ -164,7 +163,7 @@ class Nodo:
                 raise e
         
 
-class Estado:
+class Estado2D:
     """
     Representa el estado del parser en un momento dado.
 
@@ -200,8 +199,8 @@ class Estado:
         msg = f'''
 Índice: {self.indice}
 Lista palabras: {self.lista_palabras}
-DRS1: {self.nodo1.drs.pretty_format()}
-DRS2: {self.nodo2.drs.pretty_format()}
+DRS1:\n{self.nodo1.drs.pretty_format()}
+DRS2:\n{self.nodo2.drs.pretty_format()}
 '''
         return msg
     
@@ -216,7 +215,6 @@ DRS2: {self.nodo2.drs.pretty_format()}
         list_len_tokens = list()
         for sentence in nlp(frase).sentences:
             tokens = sentence.tokens
-            print(f'{sentence.text} --- len(tokens): {len(tokens)}')
             doc += tokens
             list_len_tokens.append(len(tokens))
         self.sep_index = list_len_tokens[0]
@@ -254,10 +252,23 @@ DRS2: {self.nodo2.drs.pretty_format()}
         cadena = oracion
         return cadena
 
-    def get_nodo(self) -> nltk.DrtExpression:
+    def get_nodo_indice(self) -> int:
+        """
+        Retorna el índice del nodo actual.
+        Returns:
+            int: Índice del nodo actual.
+        """
         if self.indice < self.sep_index:
+            return 0
+        return 1
+
+    def get_nodo(self) -> nltk.DrtExpression:
+        nodo_indice = self.get_nodo_indice()
+        if nodo_indice == 0:
             return self.nodo1
-        return self.nodo2
+        else:
+            return self.nodo2
+
 
 class Embeddings(Box):
     """

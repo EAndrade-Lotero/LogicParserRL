@@ -1,7 +1,5 @@
-import re
-import nltk
+import torch
 import numpy as np
-from pandas import DataFrame
 import nltk.sem.drt as drt
 
 from pyprover import *
@@ -15,18 +13,18 @@ from typing import List, Dict, Tuple, Optional
 from difflib import SequenceMatcher
 from Levenshtein import distance as levenshtein_distance
 
-from src.parser.parser_auxiliary_classes import Estado, Nodo
-from src.parser.interpreters import parser_interpreter
-
-EMB_DIM = 1536
+from src.parser.parser_auxiliary_classes import Estado2D, Nodo
+from src.parser.interpreters import ParserInterpreter
 
 # Parse into DRS
 dexpr = drt.DrtExpression.fromstring
 # Parse into FOL
 lp = LogicParser()
+# Creador de vectores densos
+EMBEBEDOR = ParserInterpreter()
 
 
-class Parser(Env):
+class Parser2D(Env):
 
     '''Clase del parser que se encarga de realizar las acciones sobre el DRS'''
 
@@ -55,8 +53,8 @@ class Parser(Env):
         self.relacion = relacion
         self.frase1_fol = frase1_fol
         self.frase2_fol = frase2_fol
-        self.estado = Estado([frase1, frase2])
-        self.raiz = self.estado.nodo
+        self.estado = Estado2D([frase1, frase2])
+        self.raiz = self.estado.get_nodo()
         self.lista_palabras = deepcopy(self.estado.lista_palabras)
         self.debug = False
         self.observation_space = Box(
@@ -74,16 +72,16 @@ class Parser(Env):
         except:
             raise Exception(f'Error: acción {accion} desconocida. Debe ser una de\n{self.nombre_acciones}')
     
-    def reset(self) -> Estado:
+    def reset(self) -> Estado2D:
         self.turn = 0
-        self.estado = Estado(self.frase)
+        self.estado = Estado2D(self.frase)
         self.raiz = self.estado.nodo
         observation = parser_interpreter({"Estado": self.estado, "Raiz": self.raiz})
         info = {}
         return observation, info 
     
     def render(self) -> None:
-        print(self.raiz.simplificar().pretty_format())
+        # print(self.raiz.simplificar().pretty_format())
         print(self.estado)
 
     def mover_derecha(self) -> None:
@@ -154,8 +152,12 @@ class Parser(Env):
     def obtener_done(self) -> bool:
         done = np.all([palabra=='[MASK]' for palabra in self.estado.lista_palabras])
         return bool(done)
-        
-    def step(self, accion:int) -> tuple[Estado, int, bool]:
+    
+    def obtener_observacion(self) -> torch.Tensor:
+        observation = EMBEBEDOR.get_embedding(self.estado)
+        return observation
+
+    def step(self, accion:int) -> tuple[Estado2D, int, bool]:
         self.turn +=1
         dict_referencias = {'indice': self.estado.indice,
                             'palabra_accionada': self.estado.lista_palabras[self.estado.indice],
@@ -173,7 +175,7 @@ class Parser(Env):
             if self.debug: print(f"Error: {e}")
             dict_referencias['done'] = False
             recompensa = -1
-        observation = parser_interpreter({"Estado": self.estado, "Raiz": self.raiz})
+        observation = self.obtener_observacion()
         truncated = self.turn > self.max_turns
         return observation, recompensa, dict_referencias['done'], truncated, dict_referencias
     
