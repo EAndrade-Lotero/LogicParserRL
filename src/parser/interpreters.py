@@ -1,6 +1,10 @@
+import torch
 from sentence_transformers import SentenceTransformer
 
-encoder_model = SentenceTransformer('sentence-transformers/distiluse-base-multilingual-cased-v1')
+model_name = 'multi-qa-MiniLM-L6-dot-v1'
+# model_name = 'sentence-transformers/distiluse-base-multilingual-cased-v1'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+encoder_model = SentenceTransformer(model_name, device=device)
 tokenizer = encoder_model.tokenizer
 SEP = tokenizer.sep_token
 
