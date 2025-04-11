@@ -13,8 +13,8 @@ from typing import List, Dict, Tuple, Optional
 from difflib import SequenceMatcher
 from Levenshtein import distance as levenshtein_distance
 
-from src.parser.parser_auxiliary_classes import Estado2D, Nodo
-from src.parser.interpreters import ParserInterpreter
+from parser.parser_auxiliary_classes import Estado2D, Nodo
+from parser.interpreters import ParserInterpreter
 
 # Parse into DRS
 dexpr = drt.DrtExpression.fromstring

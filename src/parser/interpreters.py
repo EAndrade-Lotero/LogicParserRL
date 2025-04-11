@@ -1,15 +1,8 @@
 import torch
 from sentence_transformers import SentenceTransformer
 
-from src.encoders.encoders import SentenceEncoder, DRSEncoder
-from src.config.config import PATHS
-
-model_name = 'multi-qa-MiniLM-L6-dot-v1'
-# model_name = 'sentence-transformers/distiluse-base-multilingual-cased-v1'
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-encoder_model = SentenceTransformer(model_name, device=device)
-tokenizer = encoder_model.tokenizer
-SEP = tokenizer.sep_token
+from encoders.encoders import SentenceEncoder, DRSEncoder
+from config.config import PATHS
 
 PATH_SENTENCE_ENCODER = PATHS["sentence_encoder"]
 PATH_DRS_ENCODER = PATHS["drs_encoder"]
