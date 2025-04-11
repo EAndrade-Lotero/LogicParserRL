@@ -1,0 +1,36 @@
+% start O
+#############################
+# Reglas gramaticales
+#############################
+
+# La oración es un sintagma nominal (SN) seguido de un verbo (V)
+O[SEM=<?sn(?v)>] -> SN[SEM=?sn] V[SEM=?v] 
+# La oración (O) puede ser la negación (neg) de una oración
+O[SEM=<?n(?o)>] -> NEG[SEM=?n] O[SEM=?o] 
+
+# Un sintagma nominal (SN) puede ser un término (T)
+SN[SEM=?t] -> T[SEM=?t]
+# Un sintagma nominal (SN) puede ser un determinante (D) seguido de un sustativo (N)
+SN[SEM=<?d(?n)>] -> D[SEM=?d] N[SEM=?n]
+# Un sustantivo (N) puede ser un sustativo (N) seguido de un adjetivo (ADJ)
+N[SEM=<?a(?n)>] -> N[SEM=?n] ADJ[SEM=?a]
+
+# Un verbo (V) puede ser un verbo intansitivo (VI)
+V[SEM=?v] -> VI[SEM=?v]
+# Un verbo (V) puede ser la negación (neg) de un verbo intansitivo (VI)
+V[SEM=<?n(?v)>] -> neg[SEM=?n] VI[SEM=?v]
+# Un verbo (V) puede ser una conjunción (conj) de dos verbos (V)
+V[SEM=<\x.(?vi(x) & ?vii(x))>] -> V[SEM=?vi] conj V[SEM=?vii]
+# Un verbo (V) puede ser una disyunción (disy) de dos verbos (V)
+V[SEM=<\x.(?vi(x) | ?vii(x))>] -> V[SEM=?vi] disy V[SEM=?vii]
+
+#############################
+# Reglas léxicas
+#############################
+D[SEM=<\X.\Y.(exists x.(X(x)) & forall x.(X(x) -> Y(x)))>] -> 'todo'
+D[SEM=<\X.\Y.exists x.(X(x) & Y(x))>] -> 'algún'
+D[SEM=<\X.\Y.-exists x.(X(x) & Y(x))>] -> 'ningún'
+neg[SEM=<\X.(\x.-X(x))>] -> 'no'
+NEG[SEM=<\O.(-O)>] -> 'no_'
+conj -> 'y'
+disy -> 'o'

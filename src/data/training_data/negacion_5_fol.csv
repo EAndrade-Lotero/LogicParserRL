@@ -1,0 +1,2 @@
+(exists x.MUEBLE(x) & all x.(MUEBLE(x) -> FLOTA(x)));exists x.(MUEBLE(x) & -FLOTA(x));1
+(exists x.MUEBLE(x) & all x.(MUEBLE(x) -> CALLAR(x)));exists x.(MUEBLE(x) & -CALLAR(x));1

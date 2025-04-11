@@ -1,3 +1,10 @@
+import re
+import nltk
+
+from pyprover import *
+from typing import List, Dict
+from nltk.sem.logic import LogicParser, Expression
+
 class Parse2pyprover:
     """
     Clase para convertir expresiones lógicas de NLTK en una representacion compatible con Pyprover.
@@ -27,7 +34,8 @@ class Parse2pyprover:
         cadena = re.sub(r'all ', r'∀', cadena)
         cadena = Parse2pyprover.reemplazar_existencial(cadena)
         if Parse2pyprover.verbose: print(f"Cadena con existenciales reemplazados:\n{cadena}")
-        return expr(cadena)
+        pyprover_exp = expr(cadena)
+        return pyprover_exp
 
     @staticmethod
     def variables_a_terms(formula:nltk.sem.Expression) -> None:
@@ -52,13 +60,14 @@ class Parse2pyprover:
         if not pattern_exists.search(formula):
             return formula
         for m in pattern_exists.finditer(formula):
+            span_init = m.span()[0]
             span_start = m.span()[1] + 1
             span_end = re.search(r'\.', formula).span()[0]
             span_nuevo = re.search(r'\.', formula).span()[1]
             lista_variables = formula[span_start:span_end].split(' ')
             lista_variables = [f'∃{v}.' for v in lista_variables]
             existenciales = ' '.join(lista_variables)
-            nueva_formula = existenciales + formula[span_nuevo:]
+            nueva_formula = formula[:span_init] + existenciales + formula[span_nuevo:]
             if Parse2pyprover.verbose:
                 print(nueva_formula)
             break
@@ -84,12 +93,14 @@ class Parse2pyprover:
             variables2 = Parse2pyprover.encontrar_variables(expresion.second)
             variables = variables1 + variables2
             return list(set(variables))
-        elif tipo in ['ApplicationExpression', 'EqualityExpression']:
-            variables = [v.name for v in expresion.variables()]
-            return list(set(variables))
         elif tipo in ['NegatedExpression']:
             variables = Parse2pyprover.encontrar_variables(expresion.term)
             return list(set(variables))
+        elif tipo in ['ApplicationExpression', 'EqualityExpression']:
+            variables = [v.name for v in expresion.variables()]
+            return list(set(variables))
+        elif tipo in ['ConstantExpression']:
+            return list()
         else:
             raise Exception(f'¡Tipo de expresión desconocido! {type(expresion)}')
 
