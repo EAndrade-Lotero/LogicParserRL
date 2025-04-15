@@ -27,7 +27,7 @@ V[SEM=<\x.(?vi(x) | ?vii(x))>] -> V[SEM=?vi] disy V[SEM=?vii]
 #############################
 # Reglas léxicas
 #############################
-D[SEM=<\X.\Y.(exists x.(X(x)) & forall x.(X(x) -> Y(x)))>] -> 'todo'
+D[SEM=<\X.\Y.(forall x.(X(x) -> Y(x)))>] -> 'todo'
 D[SEM=<\X.\Y.exists x.(X(x) & Y(x))>] -> 'algún'
 D[SEM=<\X.\Y.-exists x.(X(x) & Y(x))>] -> 'ningún'
 neg[SEM=<\X.(\x.-X(x))>] -> 'no'
