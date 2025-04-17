@@ -36,13 +36,14 @@ class LogicTester:
         if len(premisas) == 0:
             formula = conclusion
         elif len(premisas) == 1:
-    #        formula = f'-({premisas[0]}>{conclusion})'
-            formula = f'({premisas[0]}∧{self.negate_sentence(conclusion)})'
-        elif len(premisas) > 1:
+           formula = f'-({premisas[0]}->{conclusion})'
+            # formula = f'({premisas[0]}∧{self.negate_sentence(conclusion)})'
+        else:
             premisas_ = LogUtils.Ytoria(premisas)
-    #        formula = f'-({premisas_}>{conclusion})'
-            formula = f'({premisas_}∧{self.negate_sentence(conclusion)})'
-        formula_tseitin = self.tseitin.tseitin(formula)
+            formula = f'-({premisas_}->{conclusion})'
+            # formula = f'({premisas_}∧{self.negate_sentence(conclusion)})'
+        formula_lp = self.translation_to_prover(formula)
+        formula_tseitin = self.tseitin.tseitin(formula_lp)
         to_numeric = ToNumeric(formula_tseitin)
         formula_numeros = to_numeric.to_numeric(formula_tseitin)
         res = pycosat.solve(formula_numeros)
@@ -66,19 +67,64 @@ class LogicTester:
         Test negation between two sentences.
         '''
         #Test sentence1 implies -sentence2
-        sentence1_prover = self.translation_to_prover(sentence1)
-        negated_sentence2_prover = self.translation_to_prover(self.negate_sentence(sentence2))
-        premisas = [sentence1_prover]
-        conclusion = negated_sentence2_prover
-        resultado1 = self.check_implication(premisas, conclusion)
+        # sentence1_prover = self.translation_to_prover(sentence1)
+        # negated_sentence2_prover = self.translation_to_prover(self.negate_sentence(sentence2))
+        # premisas = [sentence1_prover]
+        # conclusion = negated_sentence2_prover
+        # resultado1 = self.check_implication(premisas, conclusion)
         # print('Resultado:', resultado1)
+        premisas = [sentence1]
+        conclusion = self.negate_sentence(sentence2)
+        resultado1 = self.check_implication(premisas, conclusion)
 
         # Test -sentence1 implies sentence2
-        negated_sentence1_prover = self.translation_to_prover(self.negate_sentence(sentence1))
-        sentence2_prover = self.translation_to_prover(sentence2)
-        premisas = [negated_sentence1_prover]
-        conclusion = sentence2_prover
-        resultado2 = self.check_implication(premisas, conclusion)
+        # negated_sentence1_prover = self.translation_to_prover(self.negate_sentence(sentence1))
+        # sentence2_prover = self.translation_to_prover(sentence2)
+        # premisas = [negated_sentence1_prover]
+        # conclusion = sentence2_prover
+        # resultado2 = self.check_implication(premisas, conclusion)
         # print('Resultado:', resultado2)
+        negated_sentence1 = self.negate_sentence(sentence1)
+        premisas = [negated_sentence1]
+        conclusion = sentence2
+        resultado2 = self.check_implication(premisas, conclusion)
 
         return resultado1 and resultado2
+    
+    def test_equivalencia(self, sentence1:str, sentence2:str) -> bool:
+        '''
+        Test equivalence between two sentences.
+        '''
+        # Test sentence1 implies sentence2
+        premisas = [sentence1]
+        conclusion = sentence2
+        resultado1 = self.check_implication(premisas, conclusion)
+
+        # Test sentence2 implies sentence1
+        premisas = [sentence2]
+        conclusion = sentence1
+        resultado2 = self.check_implication(premisas, conclusion)
+
+        return resultado1 and resultado2
+    
+    def test_implicacion(self, sentence1:str, sentence2:str) -> bool:
+        '''
+        Test implication between two sentences.
+        '''
+        # Test sentence1 implies sentence2
+        premisas = [sentence1]
+        conclusion = sentence2
+        resultado = self.check_implication(premisas, conclusion)
+
+        return resultado 
+    
+    def test_implicacion_inversa(self, sentence1:str, sentence2:str) -> bool:
+        '''
+        Test inverse implication between two sentences.
+        '''
+        # Test sentence2 implies sentence1
+        premisas = [sentence2]
+        conclusion = sentence1
+        resultado = self.check_implication(premisas, conclusion)
+
+        return resultado
