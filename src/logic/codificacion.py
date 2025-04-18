@@ -17,7 +17,13 @@ class ToPropositionalLogic:
         self.modelo_lp = Modelo()
 
     def parse(self, sentence:str) -> str:
-        sentence_lp = self.parser.parse(sentence)
+        if isinstance(sentence, str):
+            sentence_lp = self.parser.parse(sentence)
+        elif not isinstance(sentence, Expression):
+            raise Exception(f'Error: Expected {sentence} to be of type either string or nltk.sem.logic.Expression')
+        else:
+            sentence_lp = sentence
+        assert(len(sentence_lp.free()) == 0), f'Fórmula con variables libres: {sentence_lp}\n\{sentence_lp.free()}'
         self.modelo_lp.poblar_con(sentence_lp)
         formula_fundamentada = self.modelo_lp.fundamentar(sentence_lp)
         formula_lp = self.modelo_lp.codificar_lp(formula_fundamentada)
