@@ -14,28 +14,31 @@ class ToPropositionalLogic:
     def __init__(self) -> None:
         self.parser = LogicParser()
         self.debug = False
+        self.modelo_lp = Modelo()
 
     def parse(self, sentence:str) -> str:
-        m = Modelo()
         sentence_lp = self.parser.parse(sentence)
-        afirmacion_existencial = LogUtils.predicados_a_existenciales(sentence_lp)
-        afirmacion_existencial = LogUtils.existenciales_a_constantes(afirmacion_existencial)
-        if afirmacion_existencial is None:
-            formula_clases_no_vacias = sentence_lp
-        else:
-            formula_clases_no_vacias = self.parser.parse(f'({sentence_lp} & {afirmacion_existencial})')
-        m.poblar_con(formula_clases_no_vacias)
-        formula_fundamentada = m.fundamentar(formula_clases_no_vacias)
-        formula_lp = m.codificar_lp(formula_fundamentada)
+        self.modelo_lp.poblar_con(sentence_lp)
+        formula_fundamentada = self.modelo_lp.fundamentar(sentence_lp)
+        formula_lp = self.modelo_lp.codificar_lp(formula_fundamentada)
         if self.debug:
             print(f'\n\nLa oración inicial es:\n{sentence}')
-            print(f'La fórmula con existenciales es:\n{afirmacion_existencial}')
-            print(f'La fórmula con clases no vacías es:\n{formula_clases_no_vacias}')
             print('El modelo queda:')
-            print(m)
+            print(self.modelo_lp)
             print(f'La fórmula fundamentada es:\n{formula_fundamentada}')
             print(f'La fórmula codificada es:\n{formula_lp}')
         return formula_lp
+
+    def clases_no_vacias(self, sentence:str) -> str:
+        sentence_lp = self.parser.parse(sentence)
+        afirmacion_existencial = LogUtils.predicados_a_existenciales(sentence_lp)         
+        afirmacion_existencial = LogUtils.existenciales_a_constantes(afirmacion_existencial)
+        if afirmacion_existencial is None:
+            formula_clases_no_vacias = sentence
+        else:
+            formula_clases_no_vacias = f'({sentence_lp} & {afirmacion_existencial})'
+        return formula_clases_no_vacias
+
 
 class ToNumeric:
 
@@ -332,6 +335,16 @@ class Modelo:
         letra = self.descriptor.codifica(lista_valores=lista_valores)
         # print(f'Codificación: {letra}')
         return letra
+    
+    def decodificar(self, literal:str) -> str:
+        assert(len(literal) <= 2), f'Literal incorrecto (se recibió {literal})'
+        neg, atomo = PPT.como_literal(literal)
+        lista_valores = self.descriptor.decodifica(atomo)
+        predicado = self.vocabulario[lista_valores[0]]
+        argumentos = [self.vocabulario[idx] for idx in lista_valores[1:]]
+        argumentos = ', '.join(argumentos)
+        formula_atomica = f'{neg}{predicado}({argumentos})'
+        return formula_atomica
 
     def __str__(self):
         cadena = '\n' + '='*20 + 'COMPONENTES DEL MODELO' + '='*20

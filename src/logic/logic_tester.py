@@ -10,7 +10,7 @@ class LogicTester:
 
     def __init__(self):
         self.to_lp = ToPropositionalLogic()
-        self.to_lp.debug = True
+        # self.to_lp.debug = True
         self.tseitin = TseitinTransform()
         # self.tseitin.debug = True
         self.debug = False
@@ -35,11 +35,9 @@ class LogicTester:
     def check_implication(self, premisas:List[any], conclusion:any) -> bool:
         if len(premisas) == 0:
             formula = conclusion
-        elif len(premisas) == 1:
-           formula = f'-({premisas[0]}->{conclusion})'
-            # formula = f'({premisas[0]}∧{self.negate_sentence(conclusion)})'
         else:
-            premisas_ = LogUtils.Ytoria(premisas)
+            premisas_ = [self.to_lp.clases_no_vacias(formula) for formula in premisas]
+            premisas_ = LogUtils.Ytoria(premisas_)
             formula = f'-({premisas_}->{conclusion})'
             # formula = f'({premisas_}∧{self.negate_sentence(conclusion)})'
         formula_lp = self.translation_to_prover(formula)
@@ -60,6 +58,8 @@ class LogicTester:
                 modelo = [to_numeric.literal(x) for x in res]
                 modelo = [x for x in modelo if to_numeric.solo_atomo(x) in self.tseitin.atomos] 
                 print(f'\nUn modelo es:\n\n\t{modelo}')
+                modelo = [self.to_lp.modelo_lp.decodificar(x) for x in modelo]
+                print(f'\nEl modelo decodificado es:\n\n\t{modelo}')
         return (res == 'UNSAT')
 
     def test_negacion(self, sentence1:str, sentence2:str) -> bool:
