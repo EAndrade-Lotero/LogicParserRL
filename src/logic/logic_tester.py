@@ -10,7 +10,7 @@ class LogicTester:
 
     def __init__(self):
         self.to_lp = ToPropositionalLogic()
-        # self.to_lp.debug = True
+        self.to_lp.debug = True
         self.tseitin = TseitinTransform()
         # self.tseitin.debug = True
         self.debug = False

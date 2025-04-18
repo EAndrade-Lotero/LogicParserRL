@@ -19,18 +19,22 @@ class ToPropositionalLogic:
         m = Modelo()
         sentence_lp = self.parser.parse(sentence)
         afirmacion_existencial = LogUtils.predicados_a_existenciales(sentence_lp)
-        formula_aumentada = self.parser.parse(f'({sentence_lp} & {afirmacion_existencial})')
-        s1 = LogUtils.existenciales_a_constantes(formula_aumentada)
-        m.poblar_con(s1)
-        formula_fundamentada = m.fundamentar(sentence_lp)
+        afirmacion_existencial = LogUtils.existenciales_a_constantes(afirmacion_existencial)
+        if afirmacion_existencial is None:
+            formula_clases_no_vacias = sentence_lp
+        else:
+            formula_clases_no_vacias = self.parser.parse(f'({sentence_lp} & {afirmacion_existencial})')
+        m.poblar_con(formula_clases_no_vacias)
+        formula_fundamentada = m.fundamentar(formula_clases_no_vacias)
         formula_lp = m.codificar_lp(formula_fundamentada)
         if self.debug:
-             print(f'\n\nLa oración inicial es:\n{sentence}')
-             print(f'La fórmula con existenciales es:\n{afirmacion_existencial}')
-             print('El modelo queda:')
-             print(m)
-             print(f'La fórmula fundamentada es:\n{formula_fundamentada}')
-             print(f'La fórmula codificada es:\n{formula_lp}')
+            print(f'\n\nLa oración inicial es:\n{sentence}')
+            print(f'La fórmula con existenciales es:\n{afirmacion_existencial}')
+            print(f'La fórmula con clases no vacías es:\n{formula_clases_no_vacias}')
+            print('El modelo queda:')
+            print(m)
+            print(f'La fórmula fundamentada es:\n{formula_fundamentada}')
+            print(f'La fórmula codificada es:\n{formula_lp}')
         return formula_lp
 
 class ToNumeric:

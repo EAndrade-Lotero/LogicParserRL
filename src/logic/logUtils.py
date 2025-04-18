@@ -346,3 +346,5 @@ class LogUtils:
         if len(lista_existenciales) > 0:
             existenciales = LogUtils.Ytoria(lista_existenciales)
             return existenciales
+        else:
+            return None
