@@ -1,43 +1,72 @@
-import torch
-from sentence_transformers import SentenceTransformer
+import json
+import numpy as np
 
-from encoders.encoders import SentenceEncoder, DRSEncoder
-from config.config import PATHS
+from typing import List
+from pathlib import Path
+from numpy import (
+    array as np_array,
+    concatenate as np_concatenate,
+    float32 as np_float32
+)
 
-PATH_SENTENCE_ENCODER = PATHS["sentence_encoder"]
-PATH_DRS_ENCODER = PATHS["drs_encoder"]
+from parser.parser_auxiliary_classes import Nodo
+from config.config import encoder_model
 
-class ParserInterpreter:
+
+def id_state(state):
     '''
-    Parser interpreter interface.
+    Default interpreter: do nothing.
     '''
-    def __init__(self):
-        self.sentence_encoder = SentenceEncoder.load_from_file(PATH_SENTENCE_ENCODER)
-        self.drs_encoder = DRSEncoder.load_from_file(PATH_DRS_ENCODER)
+    return state
 
-    def get_embedding(self, estado) -> torch.Tensor:
-        """
-        Obtiene el embedding de la DRS actual.
-        Returns:
-            np.ndarray: Embedding de la DRS actual.
-        """
-        # Inicializa el embedding con ceros
-        nodo_indice = self.estado.get_nodo_indice()
-        # Crea el embedding de los índices
-        embed_indices = torch.tensor(
-            [
-                estado.indice # indice de la palabra actual
-                nodo_indice # indice del nodo actual
-            ],
-            dtype=torch.float32
+def parser_interpreter(state):
+    '''Create an embedding for the state using the encoder model.'''
+    estado_actual, raiz = state['Estado'], state['Raiz'] 
+    frase = estado_actual.frase
+    indice = estado_actual.indice
+    nivel = estado_actual.nodo.nivel()
+    cadena = estado_actual.obtener_cadena()
+    msg = f"{indice}\n{nivel}\n{frase}"
+    try:
+        formula = str(raiz.simplificar2recompensa().fol())
+    except Exception as e:
+        print(f"Error simplifying Nodo: {raiz}")
+        raise e
+    # msg = f"{frase}\n{indice}\n{nivel}\n{cadena}\n{formula}"
+    embeddings = encoder_model.encode(
+        [
+            cadena,
+            frase,
+            formula
+        ],
+        convert_to_numpy=True
+    ).flatten()
+    indice = np_array([estado_actual.indice]).astype(np_float32)
+    nivel = np_array([estado_actual.nodo.nivel()]).astype(np_float32)
+    embeddings = np_concatenate([embeddings, indice, nivel])
+    return embeddings
+
+class dict_embedding_interpreter:
+
+    file_path = Path('embeding_dict.json')
+
+    def __init__(self) -> None:
+        with open(self.file_path, 'r') as f:
+            self.dict_embeddings = json.load(f)
+        
+    def __call__(self, list_str:List[str]) -> np.ndarray:
+        embeddings = [
+            self.dict_embeddings.get(sentence, None)
+                for sentence in list_str 
+        ]
+        unknown_sentences = [
+            list_str[idx] for idx, x in enumerate(embeddings)
+                if x is None
+        ]
+        if len(unknown_sentences) > 0:
+            new_embeddings = encoder_model.encode(
+                unknown_sentences,
+                convert_to_numpy=True
+            )
+            self.dict_embeddings.update(dict(zip(unknown_sentences, new_embeddings))
         )
-        # Crea el embedding de la frase y el DRS
-        frase = estado.frases[nodo_indice]
-        embedding_sentence = self.sentence_encoder(frase)
-        embedding_drs = self.drs_encoder(estado.get_nodo().drs.simplify())
-        # Concatena los embeddings
-        embedding = torch.stack((embed_indices, embedding_sentence, embedding_drs))
-        return embedding
-
-
-
