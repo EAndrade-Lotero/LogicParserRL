@@ -12,7 +12,7 @@ from gymnasium.spaces import Box
 from numpy import inf as np_inf 
 from numpy import float32 as np_float32
 
-from utils.variables import PAD, UNK, EMB_DIM
+from config.config import PAD, UNK, EMB_DIM
 
 # NLP pipeline for tokenization
 nlp = stanza.Pipeline(

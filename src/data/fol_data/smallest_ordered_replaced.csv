@@ -1,0 +1,37 @@
+frase,frase-FOL,pregunta,respuesta,tipo_pregunta
+" cats are  pets.
+All cats are mammals.","∃x (Cat(x) ∧ Pet(x))
+∀x (Cat(x) → Mammal(x))",Some mammals are  pets.,∃x ∃y (Mammal(x) ∧ Mammal(y) ∧ Pet(x) ∧ Pet(y)),individuo
+"Some cats are  pets.
+All cats are mammals.","∃x (Cat(x) ∧ Pet(x))
+∀x (Cat(x) → Mammal(x))",Some mammals are  pets.,∃x ∃y (Mammal(x) ∧ Mammal(y) ∧ Pet(x) ∧ Pet(y)),individuo
+"Some flowers are  red.
+All flowers are plants.","∃x (Flower(x) ∧ Red(x))
+∀x (Flower(x) → Plant(x))",Some plants are  red.,∃x ∃y (Plant(x) ∧ Plant(y) ∧ Red(x) ∧ Red(y)),individuo
+"Some paintings are  famous.
+All paintings are artworks.","∃x (Painting(x) ∧ Famous(x))
+∀x (Painting(x) → Artwork(x))",Some artworks are  famous.,∃x ∃y (Artwork(x) ∧ Artwork(y) ∧ Famous(x) ∧ Famous(y)),individuo
+"Some computers are  slow.
+All computers are machines.","∃x (Computer(x) ∧ Slow(x))
+∀x (Computer(x) → Machine(x))",Some machines are  slow.,∃x ∃y (Machine(x) ∧ Machine(y) ∧ Slow(x) ∧ Slow(y)),individuo
+"Some cars are  fast.
+All cars are vehicles.","∃x (Car(x) ∧ Fast(x))
+∀x (Car(x) → Vehicle(x))",Some vehicles are  fast.,∃x ∃y (Vehicle(x) ∧ Vehicle(y) ∧ Fast(x) ∧ Fast(y)),individuo
+"Some phones are  smart.
+All phones are gadgets.","∃x (Phone(x) ∧ Smart(x))
+∀x (Phone(x) → Gadget(x))",Some gadgets are  smart.,∃x ∃y (Gadget(x) ∧ Gadget(y) ∧ Smart(x) ∧ Smart(y)),individuo
+"Some clothes are  fashionable.
+All clothes are apparel.","∃x (Cloth(x) ∧ Fashionable(x))
+∀x (Cloth(x) → Apparel(x))",Some apparel are  fashionable.,∃x ∃y (Apparel(x) ∧ Apparel(y) ∧ Fashionable(x) ∧ Fashionable(y)),individuo
+"Some shoes are  comfortable.
+All shoes are footwear.","∃x (Shoe(x) ∧ Comfortable(x))
+∀x (Shoe(x) → Footwear(x))",Some footwear are  comfortable.,∃x ∃y (Footwear(x) ∧ Footwear(y) ∧ Comfortable(x) ∧ Comfortable(y)),individuo
+"Some watches are  luxury.
+All watches are accessories.","∃x (Watch(x) ∧ Luxury(x))
+∀x (Watch(x) → Accessory(x))",Some accessories are  luxury.,∃x ∃y (Accessory(x) ∧ Accessory(y) ∧ Luxury(x) ∧ Luxury(y)),individuo
+"Some jewelry are  expensive.
+All jewelry are ornaments.","∃x (Jewel(x) ∧ Expensive(x))
+∀x (Jewel(x) → Ornament(x))",Some ornaments are  expensive.,∃x ∃y (Ornament(x) ∧ Ornament(y) ∧ Expensive(x) ∧ Expensive(y)),individuo
+"Some buildings are  tall.
+All buildings are structures.","∃x (Building(x) ∧ Tall(x))
+∀x (Building(x) → Structure(x))",Some structures are  tall.,∃x ∃y (Structure(x) ∧ Structure(y) ∧ Tall(x) ∧ Tall(y)),individuo
