@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH - J LogicParserRL
+#SBATCH -J LogicParserRL
 #SBATCH -p gpu
-#SBATCH --mem=250G
+#SBATCH --mem=12G
 #SBATCH -N 1
 #SBATCH -n 32
 #SBATCH -o %x-%j.out
