@@ -1,10 +1,14 @@
 import numpy as np
 import pandas as pd
-
+from pathlib import Path
 from matplotlib import pyplot as plt
 
-import sys
-sys.path.append('../src')
+#import sys
+#sys.path.append('../src')
+
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+
 
 from parser.clases_parser import ParserFOL_1f
 from parser.PER_SB3 import PERDQN, PrioritizedReplayBuffer
@@ -59,8 +63,11 @@ n_samples = 5
 df_train_n, df_test_n = train_test_split(n_samples)
 
 # Instanciar el agente
-model_name = f'PER_ALL_SOME_v5.1.2'
-model = PERDQN.load(f"model_{model_name}", env=env)
+df = pd.read_csv(PATHS['fol_data_folder']/'smallest_ordered_replaced.csv')
+env = ParserFOL_1f(df)
+model_name = "PER_ALL_SOME_v5.2_scratch"
+model_path = PATHS['models'] / f"model_{model_name}"
+model = PERDQN.load(model_path, env=env)
 
 acciones = []
 rewards_some = []

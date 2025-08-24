@@ -14,11 +14,16 @@ from gymnasium.spaces import Discrete
 from typing import List, Dict, Tuple, Optional
 from nltk.sem.logic import LogicParser, Expression
 
-from parser.interpreters import parser_interpreter
-from parser.parser_utils import FormulaTransformer
-from parser.parser_auxiliary_classes import Nodo, Estado, Embeddings
+#from parser.interpreters import parser_interpreter
+#from parser.parser_utils import FormulaTransformer
+#from parser.parser_auxiliary_classes import Nodo, Estado, Embeddings
 
-from utils.variables import MASK, EMB_DIM
+from src.parser.interpreters import parser_interpreter
+from src.parser.parser_utils import FormulaTransformer
+from src.parser.parser_auxiliary_classes import Nodo, Estado, Embeddings
+
+#from utils.variables import MASK, EMB_DIM
+from config.config import MASK, EMB_DIM
 
 #Prover
 # from nltk.inference import Prover9

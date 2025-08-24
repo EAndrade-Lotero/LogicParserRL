@@ -39,4 +39,5 @@ PATHS = {
     "fol_data_folder": Path(src_dir, "../src/data/fol_data/").resolve(),
     "tokenizer_folder": Path(src_dir, "../src/data/tokenizers/").resolve(),
     "grammar_folder": Path(src_dir, "../src/data/grammars/").resolve(),
+    "models": Path('models') 
 }

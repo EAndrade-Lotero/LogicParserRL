@@ -5,6 +5,7 @@ import nltk.sem.drt as drt
 
 from pathlib import Path
 from copy import deepcopy
+from typing import List
 from gymnasium import spaces
 from gymnasium.spaces import Box
 # from gymnasium.spaces import Discrete
