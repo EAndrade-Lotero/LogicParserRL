@@ -764,14 +764,15 @@ class ParserFOL_1f(Parser):
             # pick_first = np.random.randint(0, len(frases))
             pick_first = True if np.random.random() <= self.prob_select_first else False
 
+
         if pick_first:
             frase_ = frases[0]
-            frase_FOL_ = frases_FOL[1]
+            frase_FOL_ = frases_FOL[0]
             frase_recompensa_ = frases_FOL[0]
         else:
             frase_ = frases[-1]
             frase_FOL_ = frases_FOL[0]
-            frase_recompensa_ = frases_FOL[1]
+            frase_recompensa_ = frases_FOL[0]
 
         # frase_ = 'some tables are round'
 

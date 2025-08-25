@@ -12,7 +12,8 @@ from config.config import PATHS
 
 
 def train_test_split(n: int):
-    df = pd.read_csv(PATHS['fol_data_folder'] / 'smallest_ordered_replaced.csv')
+    #df = pd.read_csv(PATHS['fol_data_folder'] / 'smallest_ordered_replaced.csv')
+    df = pd.read_csv(PATHS['fol_data_folder'] / 'equivalencia_5_frase_fol.csv')
     df.columns = ["frase","frase-FOL","pregunta","respuesta","tipo_pregunta"]
     df = df.sort_values(by="frase", key=lambda col: col.str.len())
     df.reset_index(drop=True, inplace=True)

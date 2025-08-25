@@ -15,7 +15,9 @@ from parser.PER_SB3 import PERDQN, PrioritizedReplayBuffer
 from config.config import PATHS
 
 def train_test_split(n:int):
-    df = pd.read_csv(PATHS['fol_data_folder']/'smallest_ordered_replaced.csv')
+    #df = pd.read_csv(PATHS['fol_data_folder']/'smallest_ordered_replaced.csv')
+    df = pd.read_csv(PATHS['fol_data_folder'] / 'equivalencia_5_frase_fol.csv')
+    df.columns = ["frase","frase-FOL","pregunta","respuesta","tipo_pregunta"]
     df = df.sort_values(by="frase", key=lambda col: col.str.len())
     df.reset_index(drop=True, inplace=True)
 
@@ -63,7 +65,8 @@ n_samples = 5
 df_train_n, df_test_n = train_test_split(n_samples)
 
 # Instanciar el agente
-df = pd.read_csv(PATHS['fol_data_folder']/'smallest_ordered_replaced.csv')
+#df = pd.read_csv(PATHS['fol_data_folder']/'smallest_ordered_replaced.csv')
+df = pd.read_csv(PATHS['fol_data_folder'] / 'equivalencia_5_frase_fol.csv')
 env = ParserFOL_1f(df)
 model_name = "PER_ALL_SOME_v5.2_scratch"
 model_path = PATHS['models'] / f"model_{model_name}"
