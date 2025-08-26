@@ -9,18 +9,19 @@ from pathlib import Path
 from copy import deepcopy
 from gymnasium import Env
 from pandas import DataFrame
+from Levenshtein import ratio
 from gymnasium.spaces import Box
 from gymnasium.spaces import Discrete
 from typing import List, Dict, Tuple, Optional
 from nltk.sem.logic import LogicParser, Expression
 
-#from parser.interpreters import parser_interpreter
-#from parser.parser_utils import FormulaTransformer
-#from parser.parser_auxiliary_classes import Nodo, Estado, Embeddings
+from parser.interpreters import parser_interpreter
+from parser.parser_utils import FormulaTransformer
+from parser.parser_auxiliary_classes import Nodo, Estado, Embeddings
 
-from src.parser.interpreters import parser_interpreter
-from src.parser.parser_utils import FormulaTransformer
-from src.parser.parser_auxiliary_classes import Nodo, Estado, Embeddings
+# from src.parser.interpreters import parser_interpreter
+# from src.parser.parser_utils import FormulaTransformer
+# from src.parser.parser_auxiliary_classes import Nodo, Estado, Embeddings
 
 #from utils.variables import MASK, EMB_DIM
 from config.config import MASK, EMB_DIM
@@ -115,7 +116,6 @@ class Parser(Env):
     
     def render(self) -> None:
         drs = self.raiz.simplificar2recompensa()
-        print(drs.pretty_format())
         print(self.estado)
         
     def mover_derecha(self) -> None:
@@ -313,8 +313,12 @@ class Parser(Env):
     
     def obtener_recompensa(self, dict_referencias: dict[str, object]) -> int:
         if dict_referencias['done']:
+            if self.debug:
+                print('Parsing finalizado. Buscando recompensa...')
             recompensa = self.obtener_recompensa_parsing_finalizado()
         else:
+            if self.debug:
+                print('Parsing NO finalizado. Buscando recompensa...')
             recompensa = self.obtener_recompensa_parsing_no_finalizado(dict_referencias)
         return recompensa
     
@@ -354,77 +358,63 @@ class Parser(Env):
             recompensa = -100
         return recompensa
 
-    def obtener_recompensa_parsing_finalizado(self) -> int:
-        # Fórmula creada por el agente
-        drs_raiz = self.raiz.simplificar2recompensa()
-        premisa1 = str(Nodo.get_fol(drs_raiz))
-        # Fórmula correcta
-        fol_correcta = str(FormulaTransformer(self.frase_recompensa).formulas[0])
-        # Verificar si fórmula creada es igual a la correcta
-        if premisa1 == fol_correcta:
-            recompensa = self.recompensa_parsing_finalizado
-        else:
-            recompensa = self.recompensa_frase_incorrecta
-        return recompensa
+    def encontrar_candidatos(self) -> Tuple[any]:
+        # Obtener la fórmula de la oración a partir del DRS
+        A = self.estado.drs.fol()
+        # Obtener la fórmula de la pregunta
+        p2f = Pregunta2FOL()
+        preg = p2f.parse_pregunta(self.pregunta)
+        # Extraer las constantes a partir de las fórmulas
+        M = Modelo()
+        B = existenciales_a_constantes(A)
+        M.poblar_con(B)
+        M.poblar_con(preg)
+        if self.debug:
+            print('')
+            print('Formula creada por el agente:')
+            print(f'\t{A}')
+            print('Formula sin existenciales:')
+            print(f'\t{B}')
+            print('Fórmula de la pregunta:')
+            print(f'\t{preg}')
+            print(M)
+        candidatos = M.entidades[self.tipo_pregunta] if self.tipo_pregunta in M.entidades else []
+        fol_cache = {
+            'A':B, 'preg':preg, 'M':M
+        }
+        return candidatos, fol_cache
 
-    def obtener_recompensa_parsing_no_finalizado(self, dict_referencias: dict[str, object]) -> int:
-        acciones_sobre_mask = [
-            "mover_derecha",
-            "mover_izquierda",
-            "incluir_igualdad",
-            "subir_nivel"
-        ]
-        acciones_crear_drs = [
-            "crear_drs_antecedente",
-            "crear_drs_consecuente",
-            "crear_drs_negacion"
-        ]
-        acciones_en_palabra = [
-            "enmascarar",
-            "incluir_sustantivo",
-            "incluir_sustantivo_sin_ref",
-        ]
-        if self.debug: print("\nEvaluacion de recomepensas")
-        # if self.turn > self.max_turns:
-        #     recompensa = -self.recompensa_parsing_finalizado
-        if dict_referencias['palabra_accionada'] == MASK and dict_referencias['nombre_accion'] not in acciones_sobre_mask:
-            recompensa = self.recompensa_accion_incorrecta
-        elif dict_referencias['nombre_accion'] in acciones_sobre_mask:
-            if dict_referencias['nombre_accion'] == "mover_izquierda":
-                if dict_referencias['indice'] == 0:
-                    recompensa = self.recompensa_accion_incorrecta
-                else:
-                    recompensa = self.recompensa_accion_correcta
-            elif dict_referencias['nombre_accion'] == "mover_derecha":
-                if dict_referencias['indice'] == dict_referencias['len_lista_palabras']-1:
-                    recompensa = self.recompensa_accion_incorrecta
-                else:
-                    recompensa = self.recompensa_accion_correcta
-            elif dict_referencias['nombre_accion'] == 'subir_nivel':
-                if self.estado.nodo.madre is None:
-                    recompensa = self.recompensa_accion_incorrecta
-                else:
-                    recompensa = self.recompensa_accion_correcta
-            else:
-                recompensa = self.get_recompensa_guided_reward(dict_referencias)
-        elif dict_referencias['nombre_accion'] in acciones_crear_drs:
-            nodo_level = self.estado.nodo.nivel()
-            if dict_referencias['nombre_accion'] == 'crear_drs_negacion' and nodo_level >= self.max_recursion:
-                recompensa = self.recompensa_accion_incorrecta
-            elif nodo_level > 1:
-                recompensa = self.recompensa_accion_incorrecta
-            else:
-                recompensa = self.get_recompensa_guided_reward(dict_referencias)
-        elif dict_referencias['nombre_accion'] in acciones_en_palabra:
-            recompensa = self.get_recompensa_guided_reward(dict_referencias)
-        else:
-            raise Exception(f'Error: Acción {dict_referencias["nombre_accion"]} no clasificada.') 
-        if self.debug: 
-            print(f"La recompensa a retornar con la accion {dict_referencias['nombre_accion']} es {recompensa}")
-        return recompensa
-
-    def get_recompensa_guided_reward(self, dict_referencias:Dict[str, any]) -> float:
-        return 0
+    def evaluar_candidato(self, candidato, fol_cache) -> str:
+        A = fol_cache['A']
+        # print('Formula del drs:\n', A)
+        preg = fol_cache['preg']
+        M = fol_cache['M']
+        j = lp.parse(str(candidato))
+        c = preg(j).simplify()
+        formula_prueba_satisfaccion = lp.parse(f'{A}&-{c}')
+        # print('Para implicación:\n', formula_prueba_satisfaccion)
+        try:
+            formula_fundamentada = M.fundamentar(formula_prueba_satisfaccion)
+        except Exception as e:
+            if self.debug:
+                print('Error al fundamentar:', e)
+            recompensa = -100
+            return recompensa
+        # print('Fundamentada:\n', formula_fundamentada)
+        try:
+            formula_codificada = M.codificar_lp(formula_fundamentada)
+        except Exception as e:
+            print('*'*30)
+            print(M)
+            print('Predicados:')
+            print(f'\t{[str(p) for p in M.predicados]}')
+            print('Vocabulario:')
+            print(f'\t{M.vocabulario}')
+            raise Exception(e)
+        # print('Codificada:\n', formula_codificada)
+        formula_fnc = LP.tseitin(formula_codificada)
+        res = pycosat.solve(formula_fnc)
+        return res
 
     def obtener_done(self) -> bool:
         done = np.all([palabra == MASK for palabra in self.estado.lista_palabras])
@@ -453,7 +443,7 @@ class Parser(Env):
         observation = parser_interpreter({"Estado": self.estado, "Raiz": self.raiz})
         truncated = self.turn >= self.max_turns
         return observation, recompensa, dict_referencias['done'], truncated, dict_referencias
-
+    
 
 class Parser2(Parser):
     def __init__(self, df):
@@ -502,12 +492,14 @@ class ParserFOL_1f(Parser):
         
         self.prob_select_first = 0.5
         
+        self.peso_mask = 0.15
+        self.peso_implicacion = 30
+        self.peso_conjuncion = 30
         # self.peso_mask = 0.25
-        # self.peso_implicacion = 30
-        # self.peso_conjuncion = 30
-        self.peso_mask = 0.25
-        self.peso_implicacion = 5
-        self.peso_conjuncion = 3
+        # self.peso_implicacion = 5
+        # self.peso_conjuncion = 3
+
+        self.raise_exceptions = False
 
     def normalizar_recompensa(self, recompensa:float) -> float:
         values = [
@@ -553,9 +545,9 @@ class ParserFOL_1f(Parser):
             "incluir_sustantivo",
             "incluir_sustantivo_sin_ref",
         ]
-        if self.debug: print("\nEvaluacion de recomepensas")
-        # if self.turn > self.max_turns:
-        #     recompensa = -self.recompensa_parsing_finalizado
+        if self.debug: 
+            print('=' * 60)
+            print("Evaluacion de recomepensas")
         if dict_referencias['palabra_accionada'] == MASK and dict_referencias['nombre_accion'] not in acciones_sobre_mask:
             recompensa = self.recompensa_accion_incorrecta
         elif dict_referencias['nombre_accion'] in acciones_sobre_mask:
@@ -590,6 +582,7 @@ class ParserFOL_1f(Parser):
             raise Exception(f'Error: Acción {dict_referencias["nombre_accion"]} no clasificada.') 
         if self.debug: 
             print(f"La recompensa a retornar con la accion {dict_referencias['nombre_accion']} es {recompensa}")
+            print('=' * 60)
         return recompensa
 
     def get_recompensa_guided_reward(self, dict_referencias:Dict[str, any]) -> float:
@@ -609,7 +602,7 @@ class ParserFOL_1f(Parser):
             except Exception as e:
                 print('ACCION QUE CAUSA ERROR AL OBTENER LA RECOMPENSA')
                 print(f"accion: {dict_referencias['nombre_accion']}")
-                print(f"DRS: {drs_raiz}")
+                # print(f"DRS: {drs_raiz}")
                 # formula_actual = str(Nodo.get_fol(drs_raiz)) + ' ' + str(self.estado.lista_palabras)
                 raise e
 
@@ -676,22 +669,16 @@ class ParserFOL_1f(Parser):
         ratio_actual = self.similitud(formula_actual, formula_objetivo, mode)
         ratio_anterior =  self.similitud(formula_anterior, formula_objetivo, mode)        
         if self.debug: print(f"ratio actual: {ratio_actual}, ratio anterior: {ratio_anterior}")
-        discount = 1
-        # if ratio_actual != 0 :
-        #     recompensa = (ratio_actual - (discount*ratio_anterior)) / ratio_actual
-        # else:
-        #     recompensa = 0
-        return 1-(ratio_actual/ratio_anterior)
+        if ratio_anterior != 0 :
+            recompensa = ratio_actual / ratio_anterior
+        else:
+            recompensa = ratio_actual        
+        return recompensa
 
-    # def similitud(self, formula1, formula2) -> float:
-    #     max_len = max([len(formula1), len(formula2)])
-    #     if max_len != 0:
-    #         ratio = 1-(levenshtein_distance(formula1, formula2)/max_len)
-    #     else:
-    #         ratio = 0
-    #     return ratio * 100
-    
     def similitud(self, formula1:str, formula2:str, mode:str) -> float:
+        return ratio(formula1, formula2) # Normalized similarity based on Levenshtein's distance
+
+    def _DEPRECATED_similitud(self, formula1:str, formula2:str, mode:str) -> float:
         if mode == 'Formula':
             distance = ParserFOL_1f.custom_levenshtein(
                 formula1, formula2, 
@@ -711,7 +698,7 @@ class ParserFOL_1f(Parser):
 
         max_len = max(len(formula1), len(formula2))
         if max_len != 0:
-            ratio = 1 - (distance/max_len)
+            ratio = 1 - (distance /  max_len)
         else:
             ratio = 0
         return distance
@@ -764,15 +751,14 @@ class ParserFOL_1f(Parser):
             # pick_first = np.random.randint(0, len(frases))
             pick_first = True if np.random.random() <= self.prob_select_first else False
 
-
         if pick_first:
             frase_ = frases[0]
-            frase_FOL_ = frases_FOL[0]
+            frase_FOL_ = frases_FOL[1]
             frase_recompensa_ = frases_FOL[0]
         else:
             frase_ = frases[-1]
             frase_FOL_ = frases_FOL[0]
-            frase_recompensa_ = frases_FOL[0]
+            frase_recompensa_ = frases_FOL[1]
 
         # frase_ = 'some tables are round'
 
@@ -834,7 +820,8 @@ class ParserFOL_1f(Parser):
                 'nombre_accion': self.nombre_acciones[accion],
                 'accion': accion,
                 # 'formula_anterior': str(Nodo.get_fol(self.raiz.simplificar2recompensa())) + ' ' + str(self.estado.lista_palabras)
-                'formula_anterior': str(Nodo.get_fol(self.raiz.simplificar2recompensa())) + '=' + str(self.estado.lista_palabras)
+                # 'formula_anterior': str(Nodo.get_fol(self.raiz.simplificar2recompensa())) + '=' + str(self.estado.lista_palabras)
+                'formula_anterior': str(self.raiz.simplificar2recompensa().fol()) + '=' + str(self.estado.lista_palabras)
             }
         except:
             print("ACCION QUE CAUSA ERROR AL OBTENER LA RECOMPENSA")
@@ -851,8 +838,8 @@ class ParserFOL_1f(Parser):
             if self.debug: print(f"Error: {e}")
             dict_referencias['done'] = False
             recompensa = self.recompensa_accion_incorrecta
-            # raise Exception(f"Accion erronea: {dict_referencias}. Error: {e}")
-            # raise e
+            if self.raise_exceptions:
+                raise Exception(f"Accion erronea: {dict_referencias}. Error: {e}")
 
         recompensa = self.normalizar_recompensa(recompensa)
 
@@ -934,5 +921,5 @@ class ParserFOL_1f(Parser):
 
     def get_formula_actual(self):
         drs_raiz = self.raiz.simplificar2recompensa()
-        formula_actual = str(Nodo.get_fol(drs_raiz))
+        formula_actual = str(drs_raiz.fol())
         return formula_actual

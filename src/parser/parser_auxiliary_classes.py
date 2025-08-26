@@ -174,10 +174,15 @@ class Nodo:
                 drs += dexpr(f'([][({str(drs_antecedente)})])')
             elif not drs_antecedente.conds and drs_consecuente.conds:
                 drs += dexpr(f'([][({str(drs_consecuente)})])')
+        elif self.antecedente is not None and self.consecuente is None:
+            msg = f"Error simplificar2recompensa con drs: {drs}"
+            msg += f"\nantecedente: {self.antecedente}, consecuente: {self.consecuente}"
+            raise NotImplementedError(msg)
         elif self.antecedente is None and self.consecuente is None:
             drs = Nodo.llenar_vacios(drs)
         else:
             msg = f"Error simplificar2recompensa con drs: {drs}"
+            msg += f"\nantecedente: {self.antecedente}, consecuente: {self.consecuente}"
             raise NotImplementedError(msg)
         
         # if self.antecedente is not None and self.consecuente is None:
@@ -300,7 +305,12 @@ class Estado:
             str: Representación del estado con el índice, lista de palabras y la representación DRS simplificada.
         """
         drs = self.nodo.simplificar2recompensa()
-        return f'Índice: {self.indice}\n' + f'Nivel: {self.nodo.nivel()}\n' + f'Lista palabras: {self.lista_palabras}\n'+ f'{drs.pretty_format()}'
+        msg = f'Índice: {self.indice}\n' 
+        msg += f'Nivel: {self.nodo.nivel()}\n' 
+        msg += f'Lista palabras: {self.lista_palabras}\n'
+        msg += f'{drs.pretty_format()}\n'
+        msg += f'FOL: {drs.fol()}'
+        return msg
     
     def obtener_tokens(self) -> list[stanza.models.common.doc.Token]:
         """

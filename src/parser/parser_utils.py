@@ -5,6 +5,11 @@ from pyprover import *
 from typing import List, Dict
 from nltk.sem.logic import LogicParser, Expression
 
+from logic.logUtils import LogUtils
+
+lp = LogicParser()
+
+
 class Parse2pyprover:
     """
     Clase para convertir expresiones lógicas de NLTK en una representacion compatible con Pyprover.
@@ -175,10 +180,10 @@ class FormulaTransformer:
         Raises:
             Exception: Si el tipo de la fórmula es desconocido.
         """
-        tipo = obtener_type(formula)
+        tipo = LogUtils.obtener_type(formula)
         if tipo == 'ApplicationExpression':
             # En el caso de existir una relacion en la formula REL(x,y)
-            if obtener_type(formula.function) == 'ApplicationExpression':
+            if LogUtils.obtener_type(formula.function) == 'ApplicationExpression':
                 predicado = str(formula.function.function.variable).upper()
                 argumentos = ",".join([str(x) for x in formula.args])
             else:
@@ -219,10 +224,10 @@ class FormulaTransformer:
         Returns:
             Expression: Fórmula lógica con las constantes transformadas en cuantificadores existencia.
         """
-        tipo = obtener_type(formula)
+        tipo = LogUtils.obtener_type(formula)
         if tipo == 'ApplicationExpression':
             for argument in formula.args:
-                if obtener_type(argument) == 'ConstantExpression':
+                if LogUtils.obtener_type(argument) == 'ConstantExpression':
                     formula_string = str(formula)
                     new_string = formula_string.replace(str(argument), 'x1000')
                     new_string = f'exists x1000.({str(argument).upper()}(x1000) & {new_string})'
@@ -335,7 +340,7 @@ class FormulaTransformer:
         self.formulas = [self.const2exist(f) for f in self.formulas]
         predicados = []
         for formula in self.formulas:
-            _, predicados_ = obtener_vocabulario(formula)
+            _, predicados_ = LogUtils.obtener_vocabulario(formula)
             predicados += [str(p) for p in predicados_]
             if self.debug: print(f"Formula >> {formula}")
         if self.debug: print(f"predicados >> {predicados}\n")

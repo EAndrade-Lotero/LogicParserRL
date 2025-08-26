@@ -1,0 +1,30 @@
+Unnamed: 0,frase,frase-FOL,pregunta,respuesta,tipo_pregunta,length
+2,"All bears in zoos are not wild.
+Some bears are in zoos.","∀x ((Bear(x) ∧ In(x, zoo)) → ¬Wild(x))
+∃x ∃y (Bear(x) ∧ Bear(y) ∧ In(x, zoo) ∧ In(y, zoo) ∧ ¬(x=y))",Not all bears are wild.,∃x (Bear(x) ∧ ¬Wild(x)),individuo,57
+3,"No plants are fungi.
+Mushrooms are fungi.","∀x (Plant(x) → ¬Fungi(x))
+∀x (Mushroom(x) → Fungi(x))",No plants are mushrooms.,∀x (Plant(x) → ¬Mushroom(x)),individuo,41
+7,"All dogs sleep.
+Some four-legged animals are dogs.","∀x (Dog(x) → Sleep(x))
+∃x ∃y (FourLegged(x) ∧ Animal(x) ∧ Dog(x) ∧ FourLegged(y) ∧ Animal(y) ∧ Dog(y) ∧ ¬(x=y))",Some four-legged animals sleep.,∃x ∃y (FourLegged(x) ∧ Animal(x) ∧ Sleeps(x) ∧ FourLegged(y) ∧ Animal(y) ∧ Sleeps(y) ∧ ¬(x=y)),individuo,50
+9,"Some cats are not pets.
+All cats are mammals.","∃x (Cat(x) ∧ ¬Pet(x))
+∀x (Cat(x) → Mammal(x))",Some mammals are not pets.,∃x ∃y (Mammal(x) ∧ Mammal(y) ∧ ¬Pet(x) ∧ ¬Pet(y)),individuo,45
+11,"Drishti is an open-source software.
+Open-source software is free to modify.","OpenSourceSoftware(drishti)
+∀x (OpenSourceSoftware(x) → FreeToModify(x))",Drishti is free to modify.,FreeToModify(drishti),individuo,75
+12,"You can play games on a computer.
+A phone is not a computer.
+You can play games on a computer.","∀x (Computer(x) → CanPlayGameOn(x))
+∀x (Phone(x) → ¬Computer(x))
+∀x (Computer(x) → CanPlayGameOn(x))",You can play games on a laptop.,∀x (Laptop(x) → CanPlayGameOn(x)),individuo,84
+15,"Sūduva Marijampolė is a soccer team.
+Sūduva Marijampolė holds the Lithuanian Super Cup.","SoccerTeam(suduva)
+Holds(suduva, theLithuanianSuperCup)",Some soccer team holds the Lithuanian Super Cup.,"∃x (SoccerTeam(x) ∧ Holds(x, theLithuanianSuperCup))",individuo,87
+21,"All tables are round.
+Some pieces of furniture are tables.","∀x (Table(x) → Round(x))
+∃x ∃y (Furniture(x) ∧ Furniture(y) ∧ Table(x) ∧ Table(y) ∧ ¬(x=y))",Some pieces of furniture are round.,∃x ∃y (Furniture(x) ∧ Furniture(y) ∧ Round(x) ∧ Round(y) ∧ ¬(x=y)),individuo,58
+23,"Trees are plants.
+Some living things are trees.","∀x (Tree(x) → Plant(x))
+∃x ∃y (Living(x) ∧ Living(y) ∧ Tree(x) ∧ Tree(y) ∧ ¬(x=y))",Some living things are plants.,∃x ∃y (Living(x) ∧ Living(y) ∧ Plant(x) ∧ Plant(y) ∧ ¬(x=y)),individuo,48
